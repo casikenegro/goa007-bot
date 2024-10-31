@@ -11,38 +11,9 @@ import { BaileysProvider as Provider } from "@builderbot/provider-baileys";
 import cors from "cors";
 const PORT = process.env.PORT ?? 3008;
 
-const discordFlow = addKeyword<Provider, Database>("doc").addAnswer(
-  [
-    "You can see the documentation here",
-    "📄 https://builderbot.app/docs \n",
-    "Do you want to continue? *yes*",
-  ].join("\n"),
-  { capture: true },
-  async (ctx, { gotoFlow, flowDynamic }) => {
-    if (ctx.body.toLocaleLowerCase().includes("yes")) {
-      return gotoFlow(registerFlow);
-    }
-    await flowDynamic("Thanks!");
-    return;
-  }
-);
-
 const welcomeFlow = addKeyword<Provider, Database>(["hi", "hello", "hola"])
-  .addAnswer(`🙌 Hello welcome to this *Chatbot*`)
-  .addAnswer(
-    [
-      "I share with you the following links of interest about the project",
-      "👉 *doc* to view the documentation",
-    ].join("\n"),
-    { delay: 800, capture: true },
-    async (ctx, { fallBack }) => {
-      if (!ctx.body.toLocaleLowerCase().includes("doc")) {
-        return fallBack("You should type *doc*");
-      }
-      return;
-    },
-    [discordFlow]
-  );
+  .addAnswer(`🙌 Bienvenido a Goa *007*`)
+  .addAnswer(["Bienvenido"].join("\n"));
 
 const registerFlow = addKeyword<Provider, Database>(
   utils.setEvent("REGISTER_FLOW")
@@ -98,6 +69,14 @@ const main = async () => {
     database: adapterDB,
   });
 
+  adapterProvider.server.post(
+    "/v1/first-contact",
+    handleCtx(async (bot, req, res) => {
+      const { number } = req.body;
+      await bot.sendMessage(number, "hola bienvenido a Goa", {});
+      return res.end("sended");
+    })
+  );
   adapterProvider.server.post(
     "/v1/messages",
     handleCtx(async (bot, req, res) => {
