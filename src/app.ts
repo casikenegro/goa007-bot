@@ -90,7 +90,7 @@ const main = async () => {
 
   const adapterProvider = createProvider(Provider);
   const adapterDB = new Database();
-  adapterProvider.server.use(cors());
+  adapterProvider.server.use(cors("*"));
 
   const { handleCtx, httpServer } = await createBot({
     flow: adapterFlow,
