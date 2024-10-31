@@ -8,20 +8,8 @@ import {
 } from "@builderbot/bot";
 import { MemoryDB as Database } from "@builderbot/bot";
 import { BaileysProvider as Provider } from "@builderbot/provider-baileys";
-import cors from "cors"; // Importa cors
-
+import cors from "cors";
 const PORT = process.env.PORT ?? 3008;
-
-const app = Provider.server;
-
-// Configuración de CORS para permitir solicitudes desde un origen específico
-app.use(
-  cors({
-    origin: "http://localhost:3000", // Cambia a tu origen (URL del frontend)
-    methods: "GET,POST",
-    allowedHeaders: ["Content-Type"],
-  })
-);
 
 const discordFlow = addKeyword<Provider, Database>("doc").addAnswer(
   [
@@ -102,6 +90,7 @@ const main = async () => {
 
   const adapterProvider = createProvider(Provider);
   const adapterDB = new Database();
+  adapterProvider.server.use(cors());
 
   const { handleCtx, httpServer } = await createBot({
     flow: adapterFlow,
