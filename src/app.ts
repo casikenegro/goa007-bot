@@ -8,8 +8,20 @@ import {
 } from "@builderbot/bot";
 import { MemoryDB as Database } from "@builderbot/bot";
 import { BaileysProvider as Provider } from "@builderbot/provider-baileys";
+import cors from "cors"; // Importa cors
 
 const PORT = process.env.PORT ?? 3008;
+
+const app = Provider.server;
+
+// Configuración de CORS para permitir solicitudes desde un origen específico
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Cambia a tu origen (URL del frontend)
+    methods: "GET,POST",
+    allowedHeaders: ["Content-Type"],
+  })
+);
 
 const discordFlow = addKeyword<Provider, Database>("doc").addAnswer(
   [
@@ -135,25 +147,6 @@ const main = async () => {
       return res.end(JSON.stringify({ status: "ok", number, intent }));
     })
   );
-
-  //   adapterProvider.server.post(
-  //     "/v1/send-messages",
-  //     handleCtx(async (bot, req, res) => {
-  //       const users = [{ number: "+584146362598" }, { number: "+584127322420" }];
-  //       for (const user of users) {
-  //         const randomMessage =
-  //           listMessages[Math.floor(Math.random() * listMessages.length)];
-  //         await adapterProvider.sendMessage(user.number, randomMessage, {});
-  //       }
-  //       return res.end(JSON.stringify({ status: "ok" }));
-  //     })
-  //   );
-
-  //   const listMessages = [
-  //     `Your message!`,
-  //     "Ey how are you?",
-  //     "How do you doing?",
-  //   ];
 
   httpServer(+PORT);
 };
