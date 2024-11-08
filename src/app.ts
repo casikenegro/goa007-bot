@@ -1,66 +1,38 @@
+import axios from "axios";
 import { join } from "path";
-import {
-  createBot,
-  createProvider,
-  createFlow,
-  addKeyword,
-  utils,
-} from "@builderbot/bot";
-import { MemoryDB as Database } from "@builderbot/bot";
+import { createBot, createFlow, addKeyword } from "@builderbot/bot";
 import { BaileysProvider as Provider } from "@builderbot/provider-baileys";
 import cors from "cors";
+import { IDatabase, adapterDB } from "./database";
+import { adapterProvider } from "./wppconect";
+
 const PORT = process.env.PORT ?? 3008;
 
-const welcomeFlow = addKeyword<Provider, Database>(["hi", "hello", "hola"])
+// const fetchDataFromAppsScript = async () => {
+//   try {
+//     const response = await axios.get(
+//       "https://script.google.com/macros/s/AKfycbyD9u_jcX2z_hK_ZDf5SLqdzIiF0ygyKkFIAE4LUevR4q48aLLgTkQdX8_LBqUSR4H_/exec"
+//     );
+//     return response.data; // Assuming the endpoint returns JSON
+//   } catch (error) {
+//     console.error("Error fetching data from Apps Script:", error);
+//     return null;
+//   }
+// };
+
+const welcomeFlow = addKeyword<Provider, IDatabase>(["hi", "hello", "hola"])
   .addAnswer(`🙌 Bienvenido a Goa *007*`)
-  .addAnswer(["Bienvenido"].join("\n"));
-
-const registerFlow = addKeyword<Provider, Database>(
-  utils.setEvent("REGISTER_FLOW")
-)
-  .addAnswer(
-    `What is your name?`,
-    { capture: true },
-    async (ctx, { state }) => {
-      await state.update({ name: ctx.body });
-    }
-  )
-  .addAnswer("What is your age?", { capture: true }, async (ctx, { state }) => {
-    await state.update({ age: ctx.body });
-  })
-  .addAction(async (_, { flowDynamic, state }) => {
-    await flowDynamic(
-      `${state.get(
-        "name"
-      )}, thanks for your information!: Your age: ${state.get("age")}`
-    );
+  .addAnswer("Menu", {
+    media: "https://i.postimg.cc/DyHm5HWJ/PHOTO-2024-11-03-20-51-15-2.jpg",
   });
 
-const fullSamplesFlow = addKeyword<Provider, Database>([
-  "samples",
-  utils.setEvent("SAMPLES"),
-])
-  .addAnswer(`💪 I'll send you a lot files...`)
-  .addAnswer(`Send image from Local`, {
-    media: join(process.cwd(), "assets", "sample.png"),
-  })
-  .addAnswer(`Send video from URL`, {
-    media:
-      "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYTJ0ZGdjd2syeXAwMjQ4aWdkcW04OWlqcXI3Ynh1ODkwZ25zZWZ1dCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LCohAb657pSdHv0Q5h/giphy.mp4",
-  })
-  .addAnswer(`Send audio from URL`, {
-    media: "https://cdn.freesound.org/previews/728/728142_11861866-lq.mp3",
-  })
-  .addAnswer(`Send file from URL`, {
-    media:
-      "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-  });
-
+const menuFlow = addKeyword<Provider, IDatabase>(["menu"]).addAnswer("Menu", {
+  media: "https://i.postimg.cc/DyHm5HWJ/PHOTO-2024-11-03-20-51-15-2.jpg",
+});
+// const registerFlow = addKeyword<Provider, IDatabase>(
 const main = async () => {
-  const adapterFlow = createFlow([welcomeFlow, registerFlow, fullSamplesFlow]);
+  const adapterFlow = createFlow([welcomeFlow, menuFlow]);
 
-  const adapterProvider = createProvider(Provider);
-  const adapterDB = new Database();
   adapterProvider.server.use(cors("*"));
 
   const { handleCtx, httpServer } = await createBot({
@@ -86,23 +58,6 @@ const main = async () => {
     })
   );
 
-  adapterProvider.server.post(
-    "/v1/register",
-    handleCtx(async (bot, req, res) => {
-      const { number, name } = req.body;
-      await bot.dispatch("REGISTER_FLOW", { from: number, name });
-      return res.end("trigger");
-    })
-  );
-
-  adapterProvider.server.post(
-    "/v1/samples",
-    handleCtx(async (bot, req, res) => {
-      const { number, name } = req.body;
-      await bot.dispatch("SAMPLES", { from: number, name });
-      return res.end("trigger");
-    })
-  );
 
   adapterProvider.server.post(
     "/v1/blacklist",
