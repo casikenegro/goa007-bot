@@ -5,7 +5,7 @@ import { BaileysProvider as Provider } from "@builderbot/provider-baileys";
 import cors from "cors";
 import { adapterProvider } from "./wppconect";
 import { MemoryDB as Database } from "@builderbot/bot";
-const PORT = process.env.PORT ?? 3008;
+const PORT = process.env.PORT ?? 3000;
 
 // const fetchDataFromAppsScript = async () => {
 //   try {
