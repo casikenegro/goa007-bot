@@ -3,9 +3,8 @@ import { join } from "path";
 import { createBot, createFlow, addKeyword } from "@builderbot/bot";
 import { BaileysProvider as Provider } from "@builderbot/provider-baileys";
 import cors from "cors";
-import { IDatabase, adapterDB } from "./database";
 import { adapterProvider } from "./wppconect";
-
+import { MemoryDB as Database } from "@builderbot/bot";
 const PORT = process.env.PORT ?? 3008;
 
 // const fetchDataFromAppsScript = async () => {
@@ -20,13 +19,13 @@ const PORT = process.env.PORT ?? 3008;
 //   }
 // };
 
-const welcomeFlow = addKeyword<Provider, IDatabase>(["hi", "hello", "hola"])
+const welcomeFlow = addKeyword<Provider, Database>(["hi", "hello", "hola"])
   .addAnswer(`🙌 Bienvenido a Goa *007*`)
   .addAnswer("Menu", {
     media: "https://i.postimg.cc/DyHm5HWJ/PHOTO-2024-11-03-20-51-15-2.jpg",
   });
 
-const menuFlow = addKeyword<Provider, IDatabase>(["menu"]).addAnswer("Menu", {
+const menuFlow = addKeyword<Provider, Database>(["menu"]).addAnswer("Menu", {
   media: "https://i.postimg.cc/DyHm5HWJ/PHOTO-2024-11-03-20-51-15-2.jpg",
 });
 // const registerFlow = addKeyword<Provider, IDatabase>(
@@ -34,7 +33,7 @@ const main = async () => {
   const adapterFlow = createFlow([welcomeFlow, menuFlow]);
 
   adapterProvider.server.use(cors("*"));
-
+  const adapterDB = new Database();
   const { handleCtx, httpServer } = await createBot({
     flow: adapterFlow,
     provider: adapterProvider,
@@ -57,7 +56,6 @@ const main = async () => {
       return res.end("sended");
     })
   );
-
 
   adapterProvider.server.post(
     "/v1/blacklist",
